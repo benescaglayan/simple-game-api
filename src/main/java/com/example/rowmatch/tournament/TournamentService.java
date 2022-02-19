@@ -2,8 +2,9 @@ package com.example.rowmatch.tournament;
 
 import com.example.rowmatch.exception.*;
 import com.example.rowmatch.tournament.group.TournamentGroupService;
-import com.example.rowmatch.tournament.participation.TournamentParticipationEntity;
+import com.example.rowmatch.tournament.participation.TournamentParticipationDto;
 import com.example.rowmatch.tournament.participation.TournamentParticipationService;
+import com.example.rowmatch.tournament.response.GetLeaderboardResponse;
 import com.example.rowmatch.user.UserDto;
 import com.example.rowmatch.user.UserService;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class TournamentService {
         save(new TournamentEntity());
     }
 
-    public List<TournamentParticipationEntity> participate(int userId) throws NoActiveTournamentException, UserNotFoundException, UserAlreadyJoinedTournamentException, RankTooLowForTournamentException, NotEnoughCoinsForTournamentException, ParticipationNotFoundException, LastEarnedRewardNotClaimedException, GroupNotFoundException {
+    public GetLeaderboardResponse participate(int userId) throws NoActiveTournamentException, UserNotFoundException, UserAlreadyJoinedTournamentException, RankTooLowForTournamentException, NotEnoughCoinsForTournamentException, ParticipationNotFoundException, LastEarnedRewardNotClaimedException, GroupNotFoundException {
         int tournamentId = getActiveTournamentId();
 
         checkIfUserAlreadyJoined(tournamentId, userId);
@@ -51,11 +52,13 @@ public class TournamentService {
 
         tournamentParticipationService.participate(tournamentId, groupId, userId);
 
-        return tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
+        return getGroupLeaderboard(groupId);
     }
 
-    public List<TournamentParticipationEntity> getGroupLeaderboard(int groupId) {
-        return tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
+    public GetLeaderboardResponse getGroupLeaderboard(int groupId) {
+        List<TournamentParticipationDto> participations = tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
+
+        return new GetLeaderboardResponse(participations, true);
     }
 
     public int getUserRank(int id, int userId) throws ParticipationNotFoundException, GroupNotFoundException {

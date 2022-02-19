@@ -1,13 +1,11 @@
 package com.example.rowmatch.tournament;
 
 import com.example.rowmatch.exception.*;
-import com.example.rowmatch.tournament.participation.TournamentParticipationEntity;
+import com.example.rowmatch.tournament.response.GetLeaderboardResponse;
 import com.example.rowmatch.tournament.response.GetRankResponse;
 import com.example.rowmatch.user.UserDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/tournaments")
@@ -20,8 +18,8 @@ public class TournamentController {
     }
 
     @PutMapping(value="/participants/{userId}")
-    public ResponseEntity<List<TournamentParticipationEntity>> participate(@PathVariable int userId) throws UserNotFoundException, NoActiveTournamentException, UserAlreadyJoinedTournamentException, RankTooLowForTournamentException, NotEnoughCoinsForTournamentException, ParticipationNotFoundException, LastEarnedRewardNotClaimedException, GroupNotFoundException {
-        List<TournamentParticipationEntity> leaderboard = tournamentService.participate(userId);
+    public ResponseEntity<GetLeaderboardResponse> participate(@PathVariable int userId) throws UserNotFoundException, NoActiveTournamentException, UserAlreadyJoinedTournamentException, RankTooLowForTournamentException, NotEnoughCoinsForTournamentException, ParticipationNotFoundException, LastEarnedRewardNotClaimedException, GroupNotFoundException {
+        GetLeaderboardResponse leaderboard = tournamentService.participate(userId);
 
         return ResponseEntity.ok().body(leaderboard);
     }
@@ -34,8 +32,8 @@ public class TournamentController {
     }
 
     @GetMapping(value="/groups/{groupId}/leaderboard")
-    public ResponseEntity<List<TournamentParticipationEntity>> getGroupLeaderboard(@PathVariable int groupId) throws GroupNotFoundException {
-        List<TournamentParticipationEntity> leaderboard = tournamentService.getGroupLeaderboard(groupId);
+    public ResponseEntity<GetLeaderboardResponse> getGroupLeaderboard(@PathVariable int groupId) throws GroupNotFoundException {
+        GetLeaderboardResponse leaderboard = tournamentService.getGroupLeaderboard(groupId);
 
         return ResponseEntity.ok().body(leaderboard);
     }
