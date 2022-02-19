@@ -13,7 +13,7 @@ public class TournamentJobs {
         this.tournamentService = tournamentService;
     }
 
-    @Scheduled(cron = "0 25 * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void createActiveTournamentAndDeactivatePrevious() {
         tournamentService.deactivatePreviousTournament();
 
