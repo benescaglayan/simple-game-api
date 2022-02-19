@@ -3,6 +3,7 @@ package com.example.rowmatch.services;
 import com.example.rowmatch.exception.GroupNotFoundException;
 import com.example.rowmatch.exception.ParticipationNotFoundException;
 import com.example.rowmatch.tournament.group.TournamentGroupService;
+import com.example.rowmatch.tournament.participation.TournamentParticipationDto;
 import com.example.rowmatch.tournament.participation.TournamentParticipationEntity;
 import com.example.rowmatch.tournament.participation.TournamentParticipationRepository;
 import com.example.rowmatch.tournament.participation.TournamentParticipationService;
@@ -131,7 +132,7 @@ public class TournamentParticipationServiceTests {
 
         doReturn(expectedParticipations).when(tournamentParticipationRepository).findAllByGroupIdOrderByUserScoreDesc(groupId);
 
-        List<TournamentParticipationEntity> actualParticipations = tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
+        List<TournamentParticipationDto> actualParticipations = tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
 
         assertEquals(expectedParticipations.size(), actualParticipations.size());
         assertEquals(expectedParticipations.get(0).getUserScore(), actualParticipations.get(0).getUserScore());

@@ -5,8 +5,10 @@ import com.example.rowmatch.tournament.TournamentEntity;
 import com.example.rowmatch.tournament.TournamentRepository;
 import com.example.rowmatch.tournament.TournamentService;
 import com.example.rowmatch.tournament.group.TournamentGroupService;
+import com.example.rowmatch.tournament.participation.TournamentParticipationDto;
 import com.example.rowmatch.tournament.participation.TournamentParticipationEntity;
 import com.example.rowmatch.tournament.participation.TournamentParticipationService;
+import com.example.rowmatch.tournament.response.GetLeaderboardResponse;
 import com.example.rowmatch.user.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
@@ -193,20 +196,29 @@ public class TournamentServiceTests {
         int participationId = 9241;
         int coins = TOURNAMENT_MINIMUM_ENTRY_COINS * 2;
         int level = TOURNAMENT_MINIMUM_ENTRY_LEVEL + 2;
+        boolean isRewardClaimed = false;
+        int userScore = 0;
         Integer lastEnteredTournamentId = null;
 
         UserDto user = generateUserDto(userId, coins, level, lastEnteredTournamentId);
         TournamentEntity tournament = generateTournament(tournamentId, false);
-        TournamentParticipationEntity participation = generateParticipation(participationId, groupId, tournamentId, userId, false, 0);
+        TournamentParticipationEntity participation = generateParticipation(participationId, groupId, tournamentId, userId, isRewardClaimed, userScore);
 
         doReturn(of(tournament)).when(tournamentRepository).getTournamentByIsActiveTrue();
         doReturn(false).when(tournamentParticipationService).existsByTournamentIdAndUserId(tournamentId, userId);
         doReturn(user).when(userService).get(userId);
         doReturn(groupId).when(tournamentGroupService).getGroupIdForUserLevel(user.getLevel(), tournamentId);
         doNothing().when(tournamentParticipationService).participate(tournamentId, groupId, userId);
-        doReturn(Arrays.asList(participation)).when(tournamentParticipationService).findAllByGroupIdOrderByUserScoreDesc(groupId);
+        doReturn(Collections.singletonList(new TournamentParticipationDto(participation))).when(tournamentParticipationService).findAllByGroupIdOrderByUserScoreDesc(groupId);
 
-        List<TournamentParticipationEntity> actualLeaderboard = tournamentService.participate(userId);
+        GetLeaderboardResponse actualLeaderboard = tournamentService.participate(userId);
+
+        assertEquals(1, actualLeaderboard.participations.size());
+        assertEquals(userId, actualLeaderboard.participations.get(0).getUserId());
+        assertEquals(groupId, actualLeaderboard.participations.get(0).getGroupId());
+        assertEquals(tournamentId, actualLeaderboard.participations.get(0).getTournamentId());
+        assertEquals(isRewardClaimed, actualLeaderboard.participations.get(0).isRewardClaimed());
+        assertEquals(userScore, actualLeaderboard.participations.get(0).getUserScore());
 
         verify(tournamentRepository, times(1)).getTournamentByIsActiveTrue();
         verify(tournamentParticipationService, times(1)).existsByTournamentIdAndUserId(tournamentId, userId);
@@ -239,16 +251,16 @@ public class TournamentServiceTests {
         doReturn(TOURNAMENT_LAST_REWARD_RANK * 2).when(tournamentParticipationService).getRankByTournamentIdAndUserId(lastEnteredTournamentId, userId);
         doReturn(groupId).when(tournamentGroupService).getGroupIdForUserLevel(user.getLevel(), tournamentId);
         doNothing().when(tournamentParticipationService).participate(tournamentId, groupId, userId);
-        doReturn(Arrays.asList(participation)).when(tournamentParticipationService).findAllByGroupIdOrderByUserScoreDesc(groupId);
+        doReturn(Collections.singletonList(new TournamentParticipationDto(participation))).when(tournamentParticipationService).findAllByGroupIdOrderByUserScoreDesc(groupId);
 
-        List<TournamentParticipationEntity> actualLeaderboard = tournamentService.participate(userId);
+        GetLeaderboardResponse actualLeaderboard = tournamentService.participate(userId);
 
-        assertEquals(1, actualLeaderboard.size());
-        assertEquals(userId, actualLeaderboard.get(0).getUserId());
-        assertEquals(groupId, actualLeaderboard.get(0).getGroupId());
-        assertEquals(tournamentId, actualLeaderboard.get(0).getTournamentId());
-        assertEquals(isRewardClaimed, actualLeaderboard.get(0).isRewardClaimed());
-        assertEquals(userScore, actualLeaderboard.get(0).getUserScore());
+        assertEquals(1, actualLeaderboard.participations.size());
+        assertEquals(userId, actualLeaderboard.participations.get(0).getUserId());
+        assertEquals(groupId, actualLeaderboard.participations.get(0).getGroupId());
+        assertEquals(tournamentId, actualLeaderboard.participations.get(0).getTournamentId());
+        assertEquals(isRewardClaimed, actualLeaderboard.participations.get(0).isRewardClaimed());
+        assertEquals(userScore, actualLeaderboard.participations.get(0).getUserScore());
 
         verify(tournamentRepository, times(1)).getTournamentByIsActiveTrue();
         verify(tournamentParticipationService, times(1)).existsByTournamentIdAndUserId(tournamentId, userId);

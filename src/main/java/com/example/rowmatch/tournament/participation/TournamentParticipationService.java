@@ -6,7 +6,9 @@ import com.example.rowmatch.tournament.group.TournamentGroupService;
 import com.example.rowmatch.user.UserService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TournamentParticipationService {
@@ -43,16 +45,18 @@ public class TournamentParticipationService {
         return tournamentParticipationRepository.existsByTournamentIdAndUserId(tournamentId, userId);
     }
 
-    public List<TournamentParticipationEntity> findAllByGroupIdOrderByUserScoreDesc(int groupId) {
-        return tournamentParticipationRepository.findAllByGroupIdOrderByUserScoreDesc(groupId);
+    public List<TournamentParticipationDto> findAllByGroupIdOrderByUserScoreDesc(int groupId) {
+        List<TournamentParticipationEntity> participations = tournamentParticipationRepository.findAllByGroupIdOrderByUserScoreDesc(groupId);
+
+        return participations.stream().map(TournamentParticipationDto::new).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public int getRankByTournamentIdAndUserId(int tournamentId, int userId) throws ParticipationNotFoundException, GroupNotFoundException {
         TournamentParticipationEntity participation = getByTournamentIdAndUserId(tournamentId, userId);
 
-        List<TournamentParticipationEntity> participations = findAllByGroupIdOrderByUserScoreDesc(participation.getGroupId());
+        List<TournamentParticipationDto> participations = findAllByGroupIdOrderByUserScoreDesc(participation.getGroupId());
 
-        return participations.indexOf(participation) + 1;
+        return indexOfParticipation(participation.getId(), participations) + 1;
     }
 
     public void claimReward(int tournamentId, int userId) throws ParticipationNotFoundException {
@@ -79,5 +83,18 @@ public class TournamentParticipationService {
 
     private void save(TournamentParticipationEntity participation) {
         tournamentParticipationRepository.save(participation);
+    }
+
+    private int indexOfParticipation(int id, List<TournamentParticipationDto> participations)  {
+        int rank = 0;
+        for (TournamentParticipationDto participation : participations) {
+            if (participation.getId() == id) {
+                break;
+            }
+
+            rank++;
+        }
+
+        return rank;
     }
 }
