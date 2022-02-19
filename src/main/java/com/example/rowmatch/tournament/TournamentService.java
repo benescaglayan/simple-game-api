@@ -58,7 +58,7 @@ public class TournamentService {
     public GetLeaderboardResponse getGroupLeaderboard(int groupId) {
         List<TournamentParticipationDto> participations = tournamentParticipationService.findAllByGroupIdOrderByUserScoreDesc(groupId);
 
-        return new GetLeaderboardResponse(participations, true);
+        return new GetLeaderboardResponse(participations);
     }
 
     public int getUserRank(int id, int userId) throws ParticipationNotFoundException, GroupNotFoundException {
